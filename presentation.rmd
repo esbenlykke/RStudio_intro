@@ -1,0 +1,472 @@
+---
+title: "Getting My Colleagues Hooked on R"
+author: "Esben Lykke"
+date: "`r Sys.Date()`"
+output:
+  prettydoc::html_pretty:
+    theme: architect
+editor_options: 
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  cache = TRUE,
+  warning = FALSE,
+  message = FALSE,
+  fig.align = "center", comment = ""
+)
+```
+
+
+```{r, include=FALSE}
+library(pacman)
+p_load(
+  magrittr,
+  longurl,
+  gsheet,
+  here,
+  tidyverse,
+  patchwork,
+  ggthemes,
+  scales,
+  janitor,
+  skimr,
+  ggrepel
+)
+```
+
+## Overview
+
+Contents:
+
+- some stats about R
+- RStudio tour (live)
+- data manipulation and visualization
+- learn more
+
+
+
+## Some facts about the popularity and size of R:
+
+- R is #7 of all programming languages ([IEEE Spectrum, 2021](https://recordtrend.com/professional-knowledge/2021-programming-language-ranking-from-ieee-spectrum/))
+
+```{r, echo=FALSE}
+knitr::include_graphics("https://recordtrend.com/wp-content/uploads/2021/09/4414b60e-694f-4fdb-a1f2-0b170a9f0e7f__Content.png")
+```
+
+The other top languages (C, Java, Python and C++...) are all general-purpose languages, suitable for just about any programming task. R by contrast is a language specifically for data science, and its high ranking here reflects the critical importance of data science as a discipline today. In recent years, Python has surpassed R as the most used language in data science, however, it is down to the bandwagon effect! :) - Esben, 2021
+
+---
+
+```{r, echo = FALSE}
+n <- read_lines("https://cran.r-project.org/web/packages/") %>%
+  gsubfn::strapply(
+    paste(
+      "Currently, the CRAN package repository",
+      "features ([0-9]+) available packages."
+    )
+  ) %>%
+  unlist()
+```
+
+- There are now  **`r n` ! ! !** available packages on CRAN ([CRAN: Contributed Packages, `r Sys.Date()`](https://cran.r-project.org/web/packages/))  
+
+```{r, echo=FALSE, out.height="450px"}
+knitr::include_graphics("https://www.researchgate.net/publication/333159083/figure/fig1/AS:759374838517760@1558060478678/Number-of-R-packages-contributed-to-the-Comprehensive-R-Archive-Network-CRAN-as-a_W640.jpg")
+```
+
+---
+
+## How to use [RStudio](https://www.rstudio.com/)
+
+- Create new project
+- Panels and menus
+  - rmarkdown for reports, presentations, manuscripts, whatever...
+  - R script for functions, shiny ui.R files... 
+- Code highlighting/autocompletion
+- Help and cheatsheets
+- Packages, install/load
+- Useful shortcuts (alt + shift + k)
+
+## My most used packages:
+
+- When you load the [tidyverse](tidyverse.org) the following suite of packages will be available:
+  - [ggplot2](ggplot2.tidyverse.org) for visualizing data.
+  - [dplyr](dplyr.tidyverse.org) for manipulating data.
+  - [tidyr](tidyr.tidyverse.org) for tidying data.
+  - [stingr](stringr.tidyverse.org) for working with strings.
+  - [forcats](forcats.tidyverse.org) for working with factors/categorical data.
+  - [purrr](purrr.tidverse.org) for functional programming, tools for working with functions and vectors.
+  - [readr](readr.tidyverse.org) for reading and writing .csv files (and more).
+  - [tibble](tibble.tidyverse.org) enhanced data frames.
+    
+These are all super duper great packages. Start every R project with `library(tidyverse)`! 
+    
+- More great tidyverse packages include:
+  - [lubridate](lubridate.tidyverse.org) for working with date/times.
+  - [hms](hms.tidyverse.org) for time-of-day values.
+  - [readxl](readxl.tidyverse.org) for reading .xls and .xlsx files.
+  - [haven](haven.tidyverse.org) for SAS, SPSS, and Stata files (Traberg, hvis du vil hive gamle STATA datasæt over i R).
+  - [dbplyr](dbplyr.tidyverse.org) allows you to use remote databases by converting dplyr code into SQL. Or simply write SQL directly in rmarkdown as `sql` chunks.
+  - [glue](glue.tidyverse.org) combine data and strings. 
+
+  - [tidymodels](tidymodels.org) The tidymodels framework is a collection of packages for modeling and machine learning using tidyverse principles. incredible powerfull suite of packages for machine learning. Deep learning with keras and tensorflow is also supported but are less mature (the Rstudio team is on it). Let me know if you wanna know more...
+
+- Outside of tidyverse:
+  - [janitor](https://cran.r-project.org/web/packages/janitor/vignettes/janitor.html) for quick cleaning of data.
+  - [here](https://here.r-lib.org/) for operating with relative paths. A must if you wanna share your project folder. 
+  - [skimr](https://cran.r-project.org/web/packages/skimr/vignettes/skimr.html) for quick and comprehensive summary statistics.
+  - [ggplot2 extensions](https://exts.ggplot2.tidyverse.org/gallery/) make even more beautiful plots!
+  - [patchwork](https://github.com/thomasp85/patchwork/) my prefered package for combining plots.
+  - [beepr](https://cran.r-project.org/web/packages/beepr/beepr.pdf) to play notification sounds. Helpful when performing time consuming tasks.
+    
+    
+## Introduction to dplyr
+
+We'll use the iris dataset provided in base R. Check `library(help = "datasets")` for many more base R datasets.
+
+```{r}
+iris <-
+  iris %>%
+  as_tibble() %>%
+  clean_names()
+
+iris
+```
+
+
+Dplyr aims to provide a function for each basic verb of data manipulation:
+
+- ``filter()`` 
+- ``arrange()``
+- ``count()``
+- ``select()`` 
+- ``distinct()``
+- ``mutate()`` (and ``transmute()``)
+- ``group_by`` 
+- ``summarise()``
+- ``slice_sample()``
+- and more...
+
+
+```{r}
+iris %>%
+  filter(sepal_length < 4.5)
+```
+
+
+```{r}
+iris %>%
+  arrange(desc(petal_width))
+```
+
+```{r}
+iris %>%
+  count(species)
+```
+
+```{r}
+iris %>%
+  mutate(
+    sepal_length_sqr = sepal_length^2,
+    sepal_width = round(sepal_width)
+  )
+```
+
+```{r}
+iris %>%
+  group_by(species) %>%
+  summarise(
+    mean_sepal_length = mean(sepal_length),
+    median_sepal_width = median(sepal_width)
+  )
+```
+
+## A quick comparison between the syntax of pandas and dplyr 
+Pandas is python's equivalent of dplyr, e.i. the preferred package for data wrangling.
+
+### Load data
+
+```{python}
+import pandas as pd
+from gapminder import gapminder
+
+gapminder.head()
+```
+
+```{r}
+library(tidyverse)
+library(gapminder)
+
+head(gapminder)
+```
+
+### Filter data
+
+```{python}
+gapminder[gapminder['year'] == 2007]
+```
+
+```{r}
+gapminder %>% 
+  filter(year == 2007)
+```
+
+Filter on multiple conditions.
+
+```{python}
+
+gapminder[(gapminder['year'] == 2007) & (gapminder['continent'] == 'Americas') & (gapminder['country'] == 'United States')]
+```
+
+```{r}
+gapminder %>% 
+  filter(year == 2007, 
+         continent == "Americas",
+         country == "United States")
+```
+
+### Summary stats
+Calculate the total population per continent in 2007 and sort the results in descending order.
+
+```{python}
+gapminder[gapminder['year'] == 2007].groupby(by='continent').sum()['pop'].sort_values(ascending=False)
+```
+
+```{r}
+gapminder %>%
+  filter(year == 2007) %>%
+  group_by(continent) %>%
+  summarize(total_pop = sum(pop)) %>%
+  arrange(desc(total_pop))
+```
+
+## Creating derived variables
+Print top ten countries in the 90th percentile with regards to GDP per capita in 2007.
+
+```{python}
+gapminder_2007 = gapminder[gapminder['year'] == 2007]
+gapminder_2007['percentile'] = gapminder_2007['gdpPercap'].rank(pct=True)
+gapminder_2007.sort_values(by='percentile', ascending=False)[:10]
+```
+
+```{r}
+gapminder %>% 
+  filter(year == 2007) %>% 
+  mutate(percentile = ntile(gdpPercap, 100)) %>% 
+  arrange(desc(percentile)) %>% 
+  top_n(10) 
+
+# nate that top_n uses the last var in the tbl for ordering as default. Write top_n(10, wt = var_you_wanna_order_by) if not the last var in tbl.
+```
+
+Both python and R are great languages for data science, however, the tidyverse syntax seems to be cleaner and easier to read. 
+
+
+
+
+The chapter on data [wrangling](https://r4ds.had.co.nz/wrangle-intro.html) in the r4ds book is a great way to get to know data wrangling in R.
+
+## Elegant visualization with [ggplot2](http://ggplot2.org/)
+
+mtcars is another dataset provided in base R.
+
+```{r, out.height=380, out.width=600}
+mtcars <-
+  mtcars %>%
+  rownames_to_column(var = "model")
+
+p <-
+  mtcars %>%
+  ggplot(aes(hp, mpg)) +
+  geom_point()
+
+p
+```
+
+
+
+## Adding layers
+
+```{r}
+p + geom_label_repel(aes(label = model))
+```
+
+```{r}
+mtcars %>%
+  ggplot(aes(hp, mpg)) +
+  geom_point() +
+  geom_smooth() +
+  labs(
+    title = "Hej Traberg",
+    subtitle = "hvad så der?",
+    color = "automatic?"
+  ) +
+  scale_color_discrete(labels = c("yes", "no"))
+```
+
+```{r}
+iris2 <-
+  iris %>%
+  mutate(hej = sepal_length + 100)
+```
+
+
+## Many plots combined with [patchwork](https://github.com/thomasp85/patchwork)
+
+```{r, echo = FALSE}
+dataset <- read_csv(here("data", "train.csv")) %>%
+  mutate(across(where(is.character), factor),
+    is_home_run = factor(is_home_run)
+  )
+
+# Heat map of pitch location
+p5 <-
+  dataset %>%
+  mutate(is_home_run = as.numeric(is_home_run) - 1) %>%
+  ggplot(aes(plate_x, plate_z, z = is_home_run)) +
+  stat_summary_2d(alpha = 0.8, bins = 20, color = "black") +
+  scale_fill_gradient2_tableau(labels = percent, palette = "Sunset-Sunrise Diverging") +
+  labs(
+    fill = "Percentage of Home Runs",
+    title = "Heat Map Of Pitch Locations",
+    subtitle = "Home Runs vs Non Home Runs",
+    x = "Plate Left/Right",
+    y = "Plate Up/Down"
+  ) +
+  theme_solarized(light = FALSE)
+
+p6 <- dataset %>%
+  mutate(is_home_run = as.numeric(is_home_run) - 1) %>%
+  ggplot(aes(plate_x, plate_z, z = is_home_run)) +
+  stat_summary_2d(alpha = 0.8, bins = 20, color = "black") +
+  scale_fill_gradient2_tableau(labels = percent, palette = "Sunset-Sunrise Diverging") +
+  labs(
+    fill = "Value",
+    title = "Heat Map Of Pitch Locations",
+    subtitle = "Home Runs vs Non Home Runs",
+    x = "Plate Left/Right",
+    y = "Plate Up/Down"
+  ) +
+  facet_wrap(~pitch_name, scales = "free") +
+  theme_solarized(light = FALSE)
+```
+
+```{r, fig.width=15, fig.height= 7}
+p5 + p6
+```
+
+
+```{r, echo=FALSE}
+# number of homeruns across pitch types
+p1 <- dataset %>%
+  filter(is_home_run == 1) %>%
+  count(pitch_name, is_home_run) %>%
+  mutate(pitch_name = fct_reorder(pitch_name, n)) %>%
+  ggplot(aes(n, pitch_name, fill = pitch_name)) +
+  geom_col(alpha = .6, color = "white") +
+  geom_label(aes(n, label = n), color = "white") +
+  scale_fill_brewer(palette = "Dark2") +
+  theme(legend.position = "none") +
+  labs(
+    x = "# of home runs",
+    y = NULL,
+    title = "Number of homeruns across different picth types"
+  ) +
+  theme_solarized(light = FALSE) +
+  theme(legend.position = "none")
+
+# distributions of is_home_run across launch_speed, launch_angle and pitch_mph
+p2 <- dataset %>%
+  mutate(launch_speed = launch_speed * 1.609344) %>%
+  ggplot(aes(launch_speed, fill = is_home_run)) +
+  geom_density(alpha = .6, color = "white") +
+  scale_fill_brewer(labels = c("No", "Yes"), palette = "Dark2") +
+  labs(
+    x = "lauch speed (kmh)",
+    fill = "Homerun",
+    y = NULL,
+    title = "Distribution of \nlaunch speed by homerun"
+  ) +
+  theme_solarized(light = FALSE)
+
+p3 <- dataset %>%
+  ggplot(aes(launch_angle, fill = is_home_run)) +
+  geom_density(alpha = .6, color = "white") +
+  scale_fill_brewer(labels = c("No", "Yes"), palette = "Dark2") +
+  labs(
+    x = "Lauch angle (degrees)",
+    fill = "Homerun",
+    y = NULL,
+    title = "Distribution of \nlaunch angle by homerun"
+  ) +
+  theme_solarized(light = FALSE)
+
+p4 <- dataset %>%
+  mutate(pitch_kmh = pitch_mph * 1.609344) %>%
+  ggplot(aes(pitch_kmh, fill = is_home_run)) +
+  geom_density(alpha = .6, color = "white", position = "fill") +
+  scale_fill_brewer(labels = c("No", "Yes"), palette = "Dark2") +
+  labs(
+    x = "Pitch speed (kmh)",
+    fill = "Homerun",
+    y = NULL,
+    title = "Distribution of \npitch speed by homerun"
+  ) +
+  theme_solarized(light = FALSE)
+```
+
+```{r, fig.width=15, fig.height= 7}
+p1 | (p2 / p3 / p4 + plot_layout(guides = "collect")) +
+  theme_solarized(light = FALSE)
+```
+
+## Advanced plots, go crazy
+
+```{r, echo = FALSE}
+knitr::include_graphics("https://www.r-graph-gallery.com/img/fromTheWeb/web-violinplot-with-ggstatsplot.png")
+knitr::include_graphics("https://www.r-graph-gallery.com/img/fromTheWeb/dataviz_hiking.png")
+```
+
+## More bling for plots
+
+Looking for inspiration or help concerning data visualisation with R? Go check:
+
+- [R graph gallery](http://www.r-graph-gallery.com/)
+- [ggplot2 extensions gallery](https://exts.ggplot2.tidyverse.org/gallery/)
+
+## Interactive apps with [Shiny](http://shiny.rstudio.com/)
+
+- Check out the [shiny exemples gallery](https://shiny.rstudio.com/gallery/)
+  
+## Free books to learn about R:
+
+- Data analysis:
+    - [R for Data Science](http://r4ds.had.co.nz/)
+    - [An Introduction to Statistical Learning, with Applications in R](http://www-bcf.usc.edu/~gareth/ISL/)
+- Data vizualisation:
+  - [Elegant Graphics for Data Analysis](ggplot2: Elegant Graphics for Data Analysis)
+- Reporting:
+    - [Getting used to R, RStudio, and R Markdown](https://ismayc.github.io/rbasics-book/index.html)
+- Advanced R programming: 
+    - [Efficient R Programming](https://csgillespie.github.io/efficientR/preface.html)
+    - [Advanced R](http://adv-r.had.co.nz/)
+  Shiny apps:
+    - [Mastering Shiny](https://mastering-shiny.org/)
+- Package development:
+    - [R packages](http://r-pkgs.had.co.nz/)
+
+Learn: [R Course Finder](http://r-exercises.com/r-courses/)
+
+## Some of the content that I subscribe to:
+
+- [Medium.com](medium.com) for short articles on all topics within data science (not just R-related).
+- Content creators:
+  - [David Robinson](https://www.youtube.com/user/safe4democracy) does excellent EDA and modeling (sliced 2021 winner).
+  - [Julia Silge](https://www.youtube.com/c/JuliaSilge) mostly does introduction to different models and pretty plots.
+  - [Andrew Couch](https://www.youtube.com/c/AndrewCouch) does great introductions to the best R packages.
+  - [Jesse Mostipak](https://www.twitch.tv/kierisi) does learn-along streams on Shiny apps among other.
+  - [Nick Wan](https://www.twitch.tv/nickwan_datasci) hosts the competitive data science show, Sliced. :)
+  - [Cedric Sherer](https://www.cedricscherer.com/) blog mostly on pretty vizualisations. 
+  - 
